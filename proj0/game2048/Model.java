@@ -176,13 +176,44 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
-        if (emptySpaceExists((b))){
+        if (emptySpaceExists(b)){
             return true;
         }
 
+        for (int col = 0; col < b.size(); col += 1){
+            for (int row = 0; row < b.size(); row += 1) {
+                int tmp1 = 0;
+                int tmp2 = 0;
+                int value = b.tile(col, row).value();
+                if (indexCheck(col + 1, row, b)) {
+                    tmp1 = valueNullchecked(b.tile(col + 1, row));
+                }
+                if (indexCheck(col, row + 1, b)) {
+                    tmp2 = valueNullchecked(b.tile(col, row + 1));
+                }
+                if (tmp1 == value || tmp2 == value) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
+    public static boolean indexCheck(int col, int row, Board b){
+        if ((col - b.size() >= 0) || row - b.size() >= 0){
+            return false;
+        }
+        return true;
+    }
+
+    public static int valueNullchecked(Tile t){
+        if (t == null){
+            return 0;
+        } else{
+            return t.value();
+        }
+
+    }
 
     @Override
      /** Returns the model as a string, used for debugging. */
