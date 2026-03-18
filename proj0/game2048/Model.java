@@ -106,9 +106,67 @@ public class Model extends Observable {
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
      * */
+
+    //When the merge happened ,update score
+    public void updateScore(Tile t){
+        score += t.value(); //t not possible to be null
+    }
+
+    public boolean colUpdate(Side side, int col){
+        boolean tmp = false;
+        boolean[] isMerged = {false, false, false, false};
+        for (int row = 2; row >= 0; row -= 1){
+            if (board.tile(col, row) == null){
+                continue;
+            }
+            int t_row = getrow(side, col, row, isMerged);
+            Tile t = board.tile(col, row);
+            if (board.move(col, t_row, t)){
+                tmp = true;
+                updateScore(board.tile(col, t_row));
+            } else{
+                tmp = true;
+            }
+        }
+        return tmp;
+    }
+
+    /*return the row to move
+    * 1. When hitting the boundary → move to the boundary
+    * 2. When hitting a tile with a different value → move to the position just before that tile
+    * 3. When hitting a tile with the same value that hasn't been merged yet in this turn → move to that tile's position (preparing to merge)*/
+    public int getrow(Side side, int col, int row, boolean[] isMerged){
+        int value = board.tile(col, row).value();
+        for (int i = row + 1; i < board.size(); i += 1){
+            if(board.tile(col, i) == null){
+                if (i == board.size() - 1) {
+                    return i;
+                }
+                continue;
+            }
+            if (board.tile(col, i).value() == value && !isMerged[i]){
+                isMerged[i] = true;
+                return i;
+            } else{
+                return i - 1;
+            }
+        }
+        return board.size() - 1;
+    }
+
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
+
+        if (side == Side.NORTH){
+            for (int col = 0; col < board.size(); col += 1){
+                if (colUpdate(side, col)){
+                    changed = true;
+                }
+            }
+        } else if (side == Side.EAST) {
+            
+        }
 
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
