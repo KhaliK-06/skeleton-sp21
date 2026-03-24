@@ -8,14 +8,14 @@ public class LinkedListDeque<T> implements Deque<T> {
      * The element in the LLDeque.
      */
     private class TNode {
-        public T first;
-        public TNode next;
-        public TNode prev;
+        private T first;
+        private TNode next;
+        private TNode prev;
 
-        public TNode(T item, TNode Next, TNode Prev) {
+        private TNode(T item, TNode next_, TNode prev_) {
             first = item;
-            next = Next;
-            prev = Prev;
+            next = next_;
+            prev = prev_;
         }
     }
 
@@ -47,11 +47,6 @@ public class LinkedListDeque<T> implements Deque<T> {
         sentinal.prev = new TNode(item, sentinal, sentinal.prev);
         sentinal.prev.prev.next = sentinal.prev;
         size += 1;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     @Override
@@ -142,7 +137,7 @@ public class LinkedListDeque<T> implements Deque<T> {
 
     }
 
-    public Iterator<T> iteator() {
+    public Iterator<T> iterator() {
         return new LinkedListDequeIterator();
     }
 

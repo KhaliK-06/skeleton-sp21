@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T>{
+public class ArrayDeque<T> implements Deque<T> {
     /** items : the container of ADeque.
      * size : the size of Deque.(not the length of items)
      * first : Point to the next first element.
@@ -12,7 +12,7 @@ public class ArrayDeque<T> implements Deque<T>{
     private int first;
     private int last;
 
-    public ArrayDeque(){
+    public ArrayDeque() {
         items = (T[]) new Object[8];
         first = 3;
         last = 4;
@@ -46,11 +46,6 @@ public class ArrayDeque<T> implements Deque<T>{
         items[last] = item;
         last = (last + 1) % items.length;
         size += 1;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     @Override
@@ -99,16 +94,16 @@ public class ArrayDeque<T> implements Deque<T>{
         return items[(first + 1 + index) % items.length];
     }
 
-    private class ArrayDequeIterator implements Iterator<T>{
+    private class ArrayDequeIterator implements Iterator<T> {
         private int count = 0;
 
         @Override
-        public boolean hasNext(){
+        public boolean hasNext() {
             return count < size;
         }
 
         @Override
-        public T next(){
+        public T next() {
             T returnValue = get(count);
             count += 1;
             return returnValue;
@@ -120,10 +115,10 @@ public class ArrayDeque<T> implements Deque<T>{
     }
 
     public boolean equals(Object o) {
-        if (o == this){
+        if (o == this) {
             return true;
         }
-        if (!(o instanceof ArrayDeque)){
+        if (!(o instanceof ArrayDeque)) {
             return false;
         }
         ArrayDeque<?> tmp = (ArrayDeque<?>) o;
