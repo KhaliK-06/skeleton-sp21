@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     /** items : the container of ADeque.
      * size : the size of Deque.(not the length of items)
      * first : Point to the next first element.
@@ -26,6 +26,7 @@ public class ArrayDeque<T> implements Deque<T> {
         System.arraycopy(items, first, a, 0, size - first);
         System.arraycopy(items, 0, a, size - first, first);
         items = a;
+        size = capacity;
     }
 
     @Override
@@ -118,16 +119,19 @@ public class ArrayDeque<T> implements Deque<T> {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof ArrayDeque)) {
-            return false;
-        }
-        ArrayDeque<?> tmp = (ArrayDeque<?>) o;
-        if (tmp.size != this.size) {
+        if (!(o instanceof Deque)) {
             return false;
         }
 
+        Deque<?> tmpDeque = (Deque<?>) o;
+        if (tmpDeque.size() != this.size()) {
+            return false;
+        }
+
+        Iterable<?> tmpIterable = (Iterable<?>) o;
+
         Iterator<T> thisIter = this.iterator();
-        Iterator<?> tmpIter = tmp.iterator();
+        Iterator<?> tmpIter = tmpIterable.iterator();
 
         while (thisIter.hasNext() && tmpIter.hasNext()) {
             T myItem = thisIter.next();
