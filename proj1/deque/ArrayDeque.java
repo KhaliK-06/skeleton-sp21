@@ -19,14 +19,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     private void reSize(int capacity) {
-        T[] a = (T[]) new Object[capacity];
-        if (last > first) {
-            System.arraycopy(items, first, a, 0, size);
-        } else {
-            System.arraycopy(items, first, a, 0, items.length - first);
-            System.arraycopy(items, 0, a, items.length - first, first);
+        T[] newArray = (T[]) new Object[capacity];
+        for (int i = 0; i < size; i++) {
+            newArray[i] = this.get(i);
         }
-        items = a;
+        items = newArray;
+        first = capacity - 1;
+        last = size;
     }
 
     @Override
@@ -58,7 +57,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     public void printDeque() {
         Iterator<T> iter = iterator();
         while (iter.hasNext()) {
-            System.out.print(iter.next());
+            System.out.print(iter.next() + " ");
         }
         System.out.println();
     }
