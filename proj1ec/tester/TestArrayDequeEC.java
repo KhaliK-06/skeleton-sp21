@@ -23,11 +23,11 @@ public class TestArrayDequeEC {
          if (numberBetweenZeroAndOne < 0.5) {
              sad1.addLast(i);
              ad1.addLast(i);
-             messageContainer = "addLast(" + i +")\n";
+             messageContainer += "addLast(" + i +")\n";
          } else {
              sad1.addFirst(i);
              ad1.addFirst(i);
-             messageContainer = "addFirst(" + i +")\n";
+             messageContainer += "addFirst(" + i +")\n";
          }
 
          assertEquals(messageContainer, ad1.size(), sad1.size());
@@ -39,13 +39,13 @@ public class TestArrayDequeEC {
          if (numberBetweenZeroAndOne < 0.5) {
              Integer expected = ad1.removeLast();
              Integer actual = sad1.removeLast();
-             messageContainer = "removeFirst(): " + actual + "\n";
              assertEquals(messageContainer, expected, actual);
+             messageContainer += "removeLast()\n";
          } else {
              Integer expected = ad1.removeFirst();
              Integer actual = sad1.removeFirst();
-             messageContainer = "removeFirst(): " + actual + "\n";
              assertEquals(messageContainer, expected, actual);
+             messageContainer += "removeFirst()\n";
          }
 
          assertEquals(messageContainer, ad1.size(), sad1.size());
