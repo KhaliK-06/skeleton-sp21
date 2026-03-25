@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
     /**
      * The element in the LLDeque.
@@ -114,18 +114,18 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
      * Help to implement iterator()
      */
     private class LinkedListDequeIterator implements Iterator<T> {
-        private TNode currentNode = sentinal;
+        private TNode currentNode = sentinal.next;
 
         @Override
         public boolean hasNext() {
-            return currentNode.next != sentinal;
+            return currentNode != sentinal;
         }
 
         @Override
         public T next() {
-            T returnValue = currentNode.first;
+            T returnItem = currentNode.first;
             currentNode = currentNode.next;
-            return returnValue;
+            return returnItem;
         }
 
     }
