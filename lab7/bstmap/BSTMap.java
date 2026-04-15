@@ -1,13 +1,28 @@
 package bstmap;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.LinkedList;
 
 public class BSTMap <K extends Comparable<K>, V> implements Map61B<K, V>{
 
     private int size = 0;
 
     private BSTNode root;
+
+    public void printInOrder() {
+        printInOrder(root);
+    }
+
+    private void printInOrder(BSTNode node) {
+        if (node == null) {
+            return;
+        }
+        printInOrder(node.left);
+        System.out.print(node.key + " ");
+        printInOrder(node.right);
+    }
 
     //return the node with key in k
     private BSTNode getNode(BSTNode node, K k) {
@@ -125,9 +140,8 @@ public class BSTMap <K extends Comparable<K>, V> implements Map61B<K, V>{
         if (!get(key).equals(value)) {
             return null;
         }
-        V reValue = null;
-        reValue = remove(key);
-        return reValue;
+        remove(key);
+        return value;
     }
 
     private BSTNode min(BSTNode node) {
@@ -140,57 +154,42 @@ public class BSTMap <K extends Comparable<K>, V> implements Map61B<K, V>{
 
     @Override
     public Iterator<K> iterator() {
-        return new BSTIterator();
+        return new BSTMapIter();
     }
 
-    @Override
-    public Set<K> keySet() {
-        return new java.util.AbstractSet<K>() {
-            @Override
-            public Iterator<K> iterator() {
-                return BSTMap.this.iterator();
-            }
+    private class BSTMapIter implements Iterator<K> {
+        LinkedList<BSTNode> list;
 
-            @Override
-            public int size() {
-                return BSTMap.this.size();
-            }
-
-            @Override
-            public boolean contains(Object key) {
-                return BSTMap.this.containsKey((K) key);
-            }
-        };
-    }
-
-    private class BSTIterator implements Iterator<K> {
-        private java.util.Stack<BSTNode> stack = new java.util.Stack<>();
-
-        public BSTIterator() {
-            pushLeft(root);
-        }
-
-        private void pushLeft(BSTNode node) {
-            while (node != null) {
-                stack.push(node);
-                node = node.left;
-            }
+        public BSTMapIter() {
+            list = new LinkedList<>();
+            list.addLast(root);
         }
 
         @Override
         public boolean hasNext() {
-            return !stack.isEmpty();
+            return !list.isEmpty();
         }
 
         @Override
         public K next() {
-            if (!hasNext()) {
-                throw new java.util.NoSuchElementException();
+            BSTNode node = list.removeFirst();
+            if (node.left != null) {
+                list.addLast(node.left);
             }
-            BSTNode node = stack.pop();
-            pushLeft(node.right);
+            if (node.right != null) {
+                list.addLast(node.right);
+            }
             return node.key;
         }
+    }
+
+    @Override
+    public Set<K> keySet() {
+        Set<K> set = new HashSet<>();
+        for (K k : this) {
+            set.add(k);
+        }
+        return set;
     }
 
     private class BSTNode {
