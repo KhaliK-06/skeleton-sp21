@@ -1,0 +1,20 @@
+In the OrderSpeedTest, the BSTMap stuck.
+
+ULLMap --Stack Overflow -- couldn't add 1000000 strings.
+BSTMap --Stack Overflow -- couldn't add 1000000 strings.
+Java's Built-in TreeMap: 0.29 sec
+Java's Built-in HashMap: 0.18 sec
+
+for 1000000 insertions (each of 10 char)
+
+ULLMap --Stack Overflow -- couldn't add 1000000 strings of length 10.
+class bstmap.BSTMap: 0.70 sec
+Java's Built-in TreeMap: 0.66 sec
+Java's Built-in HashMap: 0.24 sec
+
+for 10000000 insertions (each of 10 char)
+
+ULLMap --Stack Overflow -- couldn't add 10000000 strings of length 10.
+class bstmap.BSTMap: 11.37 sec
+Java's Built-in TreeMap: 9.92 sec
+Java's Built-in HashMap: 2.90 sec
