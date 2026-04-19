@@ -1,0 +1,33 @@
+Insert strings of length 10
+
+Random:
+hashmap.ULLMap: 1000000
+couldn't add 1000000 strings of length 10.
+
+hashmap.MyHashMap: 1000000
+class hashmap.MyHashMap: 0.77 sec
+
+Java's HashMap: 1000000
+Java's Built-in HashMap: 0.31 sec
+
+Order:
+hashmap.ULLMap: 1000000
+--Stack Overflow -- couldn't add 1000000 strings.
+
+hashmap.MyHashMap: 1000000
+class hashmap.MyHashMap: 0.39 sec
+
+Java's HashMap: 1000000
+Java's Built-in HashMap: 0.23 sec
+
+with different type of bucket:
+strings to insert into each map: 1000000
+class hashmap.MyHashMapALBuckets: 0.76 sec
+class hashmap.MyHashMapLLBuckets: 0.80 sec
+class hashmap.MyHashMapTSBuckets: 1.23 sec
+class hashmap.MyHashMapHSBuckets: 1.36 sec
+class hashmap.MyHashMapPQBuckets: 1.02 sec
+
+
+
+
