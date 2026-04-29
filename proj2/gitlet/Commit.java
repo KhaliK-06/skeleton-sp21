@@ -19,10 +19,10 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    private Date time;
-    private String message;
-    private String prev;
-    private HashMap<String, String> trackedFiles;
+    public Date time;
+    public String message;
+    public String prev;
+    public HashMap<String, String> trackedFiles;
 
     public Commit() {
         time = new Date(0);

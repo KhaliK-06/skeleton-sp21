@@ -2,23 +2,21 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-
 import static gitlet.Utils.*;
 
 /** Represents a gitlet repository.
  * the structure of the .gitlet:
  * .gitlet/
- * ├── objects/        (对象区)
- * │   ├── commits/    (存放所有的 Commit 快照，文件名是哈希值)
- * │   └── blobs/      (存放所有的文件内容快照，文件名是哈希值)
- * ├── refs/           (指针区)
- * │   ├── heads/      (存放各个分支的最新 Commit 哈希值)
- * │   │   └── master  (初始分支)
- * │   └── ...         (分支)
- * ├── HEAD            (记录当前你在哪个分支上，通常存一个字符串，比如 "ref: refs/heads/master")
- * └── staging/        (暂存区)
- *     ├── addition    (准备新加入的文件列表/内容)
- *     └── removal     (准备删除的文件列表)
+ * ├── objects/         (对象区)
+ * │   ├── commits/     (存放所有的 Commit 快照，文件名是哈希值)
+ * │   └── blobs/       (存放所有的文件内容快照，文件名是哈希值)
+ * ├── refs/            (指针区)
+ * │   ├── heads/       (存放各个分支的最新 Commit 哈希值)
+ * │   │   └── master   (初始分支)
+ * │   └── ...          (分支)
+ * ├── HEAD             (记录当前你在哪个分支上，通常存一个字符串，比如 "ref: refs/heads/master")
+ * └── staging/         (暂存区)
+ *     └── staging_area (存储Staging实例)
  * method:
  *   setupRepo()
  *      initial the repo
@@ -45,8 +43,6 @@ public class Repository {
     public static final File REF_DIR = join(CWD, ".gitlet", "refs");
     public static final File HEAD_DIR = join(CWD, ".gitlet", "refs", "heads");
     public static final File STAGING_DIR = join(CWD, ".gitlet", "staging");
-    public static final File ADDITION_DIR = join(CWD, ".gitlet", "staging");
-    public static final File REMOVAL_DIR = join(CWD, ".gitlet", "staging");
     private static File HEAD = join(GITLET_DIR, "HEAD");
 
 
@@ -57,10 +53,46 @@ public class Repository {
         BLOB_DIR.mkdir();
         REF_DIR.mkdir();
         STAGING_DIR.mkdir();
-        ADDITION_DIR.mkdir();
-        REMOVAL_DIR.mkdir();
         HEAD.createNewFile();
         writeContents(HEAD, "master");
+        Staging staging = new Staging();
+        File stagingF = join(STAGING_DIR, "staging_area");
+        writeObject(stagingF, staging);
+    }
+
+    public static void add(String fileName) {
+        // initial the staging_area
+        File stageFile = join(STAGING_DIR, "staging_area");
+        Staging currentStage = readObject(stageFile, Staging.class);
+
+        if (currentStage.removal.contains(fileName)) {
+            currentStage.removal.remove(fileName);
+        }
+
+        File targetFile = join(CWD, fileName);
+        if (!targetFile.exists()) {
+            System.out.println("File does not exist.");
+            System.exit(0);
+        }
+        byte[] content = readContents(targetFile);
+        String fileHash = sha1(content);
+        Commit currentCommit = getCurrentCommit();
+        String commitHash = currentCommit.trackedFiles.get(fileName);
+
+        if (fileHash.equals(commitHash)) {
+            currentStage.addition.remove(fileName);
+        } else {
+            currentStage.addition.put(fileName, fileHash);
+            //save in the blobs
+            File blobFile = join(BLOB_DIR, fileHash);
+            writeContents(blobFile, content);
+        }
+        // put it back
+        writeObject(stageFile, currentStage);
+    }
+
+    public static void commit(String message) {
+
     }
 
     public static Commit getCommit(String id) {
