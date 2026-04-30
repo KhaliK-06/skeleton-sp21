@@ -16,9 +16,13 @@ public class Staging implements Serializable {
     public HashSet<String> removal = new HashSet<>();
 
     public void clear() {
-        addition = new HashMap<>();
-        removal = new HashSet<>();
-        writeObject(Repository.STAGING_DIR, this);
+        addition.clear();
+        removal.clear();
+        writeObject(Repository.STAGE_FILE, this);
+    }
+
+    public void update() {
+        writeObject(Repository.STAGE_FILE, this);
     }
 
 }

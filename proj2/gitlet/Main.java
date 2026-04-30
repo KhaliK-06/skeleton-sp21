@@ -20,18 +20,17 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                validateNumArgs(args, 2);
+                validateNumArgs(args, 1);
                 File gitlet = join(".gitlet");
                 if (gitlet.exists()) {
                     System.out.println("A Gitlet version-control system already exists in the current directory.");
-                    break;
+                    System.exit(0);
                 }
                 Repository.setupRepo();
                 Commit init = new Commit();
                 Repository.saveCommit(init);
-                String initSha1 = sha1(init);
                 File master = join(Repository.HEAD_DIR, "master");
-                writeContents(master, initSha1);
+                writeContents(master, sha1(serialize(init)));
                 break;
             case "add":
                 initialCheck();
@@ -52,6 +51,16 @@ public class Main {
                     System.exit(0);
                 }
                 Repository.commit(message);
+                break;
+            case "rm":
+                initialCheck();
+                validateNumArgs(args, 2);
+                Repository.rm(args[1]);
+                break;
+            case "log":
+                initialCheck();
+                validateNumArgs(args, 1);
+                Repository.log();
                 break;
             default:
                 System.out.println("No command with that name exists.");
