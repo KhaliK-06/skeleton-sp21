@@ -3,11 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-
+import java.util.*;
 import static gitlet.Utils.*;
 
 /** Represents a gitlet repository.
@@ -30,6 +26,7 @@ import static gitlet.Utils.*;
  *      get the commit with id
  *   saveCommit()
  *      save the commit
+ *  @author TODO
  *
  */
 public class Repository {
@@ -186,6 +183,7 @@ public class Repository {
             String hash = sha1(serialize(commit));
             System.out.println("===");
             System.out.println("commit " + hash);
+            // TODO : merge situation
             System.out.println("Date: " + sdf.format(commit.time));
             System.out.println(commit.message);
             System.out.println();
@@ -197,6 +195,114 @@ public class Repository {
         }
     }
 
+    public static void g_log() {
+        List<String> commits = plainFilenamesIn(COMMIT_DIR);
+        assert commits != null;
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
+        for (String commit : commits) {
+            Commit c = getCommit(commit);
+            String hash = commit;
+            System.out.println("===");
+            System.out.println("commit " + hash);
+            // TODO : merge situation
+            System.out.println("Date: " + sdf.format(c.time));
+            System.out.println(c.message);
+            System.out.println();
+        }
+    }
+
+    public static void find(String message) {
+        boolean isFind = false;
+        List<String> commits = plainFilenamesIn(COMMIT_DIR);
+        assert commits != null;
+        for (String commit : commits) {
+            Commit c = getCommit(commit);
+            if (c.message.equals(message)) {
+                System.out.println(commit);
+                    isFind = true;
+            }
+        }
+        if (!isFind) {
+            System.out.println("Found no commit with that message.");
+            System.exit(0);
+        }
+    }
+
+    public static void status() {
+        //branch
+        System.out.println("=== Branches ===");
+        List<String> branches = plainFilenamesIn(HEAD_DIR);
+        Collections.sort(branches);
+        for (String branch : branches) {
+            if (branch.equals(readContentsAsString(HEAD))) {
+                System.out.println("*" + branch);
+            } else {
+                System.out.println(branch);
+            }
+        }
+        System.out.println();
+        //staging
+        Staging stage = getCurrentStage();
+        HashSet<String> rm = stage.removal;
+        HashMap<String, String> add = stage.addition;
+        List<String> rmList = new ArrayList<>(rm);
+        List<String> addList = new ArrayList<>(add.keySet());
+        Collections.sort(rmList);
+        Collections.sort(addList);
+        System.out.println("=== Staged Files ===");
+        for (String key : addList) {
+            System.out.println(key);
+        }
+        System.out.println();
+        //rm
+        System.out.println("=== Removed Files ===");
+        for (String key : rmList) {
+            System.out.println(key);
+        }
+        System.out.println();
+        // modified but not staged
+        List<String> modified = new ArrayList<>();
+        List<String> untracked = new ArrayList<>();
+        List<String> cwd = plainFilenamesIn(CWD);
+        Commit currentCommit = getCurrentCommit();
+        HashMap<String, String> track = currentCommit.trackedFiles;
+        //untrack
+        for (String file : cwd) {
+            File file_ = join(CWD, file);
+            String fileHash = sha1(readContents(file_));
+            if (!addList.contains(file) && !track.containsKey(file)) {
+                untracked.add(file);
+            } else if (rmList.contains(file)) {
+                untracked.add(file);
+            } else if (addList.contains(file) && !fileHash.equals(add.get(file))) {
+                modified.add(file + " (modified)");
+            } else if (track.containsKey(file) && !addList.contains(file) && !fileHash.equals(track.get(file))) {
+                modified.add(file + " (modified)");
+            }
+        }
+        for (String file : addList) {
+            if (!cwd.contains(file)) {
+                modified.add(file + " (deleted)");
+            }
+        }
+        for (String file : track.keySet()) {
+            if (!rmList.contains(file) && !cwd.contains(file)) {
+                modified.add(file + " (deleted)");
+            }
+        }
+        Collections.sort(untracked);
+        Collections.sort(modified);
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        for (String file : modified) {
+            System.out.println(file);
+        }
+        System.out.println();
+        System.out.println("=== Untracked Files ===");
+        for (String file : untracked) {
+            System.out.println(file);
+        }
+        System.out.println();
+    }
 
 
 }

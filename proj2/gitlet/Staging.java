@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import static gitlet.Utils.*;
