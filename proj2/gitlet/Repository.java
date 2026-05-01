@@ -50,7 +50,7 @@ public class Repository {
     private static File HEAD = join(GITLET_DIR, "HEAD");
 
 
-    public static void setupRepo() throws IOException {
+    public static void setupRepo()  {
         GITLET_DIR.mkdir();
         OBJECT_DIR.mkdir();
         COMMIT_DIR.mkdir();
@@ -58,7 +58,12 @@ public class Repository {
         REF_DIR.mkdir();
         HEAD_DIR.mkdir();
         STAGING_DIR.mkdir();
-        HEAD.createNewFile();
+        try {
+            HEAD.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         writeContents(HEAD, "master");
         Staging staging = new Staging();
         File stagingF = join(STAGE_FILE);
