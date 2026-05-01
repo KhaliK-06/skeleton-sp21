@@ -65,34 +65,6 @@ public class Repository {
         writeObject(stagingF, staging);
     }
 
-    public static Commit getCommit(String id) {
-        if (id == null) {
-            return null;
-        }
-        File commit = join(COMMIT_DIR, id);
-        if (commit.exists()) {
-            return readObject(commit, Commit.class);
-        }
-        return null;
-    }
-
-    public static void saveCommit (Commit commit) {
-        String name = sha1(serialize(commit));
-        File in = join(COMMIT_DIR, name);
-        writeObject(in, commit);
-    }
-
-    public static Commit getCurrentCommit() {
-        String branchName = readContentsAsString(HEAD);
-        File branchFile = join(HEAD_DIR, branchName);
-        String commitHash = readContentsAsString(branchFile);
-        return getCommit(commitHash);
-    }
-
-    public static Staging getCurrentStage() {
-        return readObject(STAGE_FILE, Staging.class);
-    }
-
     public static void add(String fileName) {
         // initial the staging_area
         File stageFile = join(STAGE_FILE);
@@ -142,7 +114,9 @@ public class Repository {
         }
         track.putAll(add);
         //create new commit
-        String parentHash = sha1(serialize(currentCommit));
+        String branchName = readContentsAsString(HEAD);
+        File branchFile = join(HEAD_DIR, branchName);
+        String parentHash = readContentsAsString(branchFile);
         Commit newCommit = new Commit(new Date(), message, parentHash, track);
         //update HEAD and refs
         saveCommit(newCommit);
@@ -178,15 +152,18 @@ public class Repository {
     public static void log() {
         // format
         SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
-        Commit commit = getCurrentCommit();
+        String branchName = readContentsAsString(HEAD);
+        File branchFile = join(HEAD_DIR, branchName);
+        String hash = readContentsAsString(branchFile);
+        Commit commit = getCommit(hash);
         while (commit != null) {
-            String hash = sha1(serialize(commit));
             System.out.println("===");
             System.out.println("commit " + hash);
             // TODO : merge situation
             System.out.println("Date: " + sdf.format(commit.time));
             System.out.println(commit.message);
             System.out.println();
+            hash = commit.prev;
             if (commit.prev == null) {
                 commit = null;
             } else {
@@ -260,21 +237,16 @@ public class Repository {
             System.out.println(key);
         }
         System.out.println();
-        // modified but not staged
+        // modified but not staged and untrack
         List<String> modified = new ArrayList<>();
-        List<String> untracked = new ArrayList<>();
+        List<String> untracked = getUntrackedFiles();
         List<String> cwd = plainFilenamesIn(CWD);
         Commit currentCommit = getCurrentCommit();
         HashMap<String, String> track = currentCommit.trackedFiles;
-        //untrack
         for (String file : cwd) {
             File file_ = join(CWD, file);
             String fileHash = sha1(readContents(file_));
-            if (!addList.contains(file) && !track.containsKey(file)) {
-                untracked.add(file);
-            } else if (rmList.contains(file)) {
-                untracked.add(file);
-            } else if (addList.contains(file) && !fileHash.equals(add.get(file))) {
+            if (addList.contains(file) && !fileHash.equals(add.get(file))) {
                 modified.add(file + " (modified)");
             } else if (track.containsKey(file) && !addList.contains(file) && !fileHash.equals(track.get(file))) {
                 modified.add(file + " (modified)");
@@ -304,5 +276,132 @@ public class Repository {
         System.out.println();
     }
 
+    public static void checkout(Commit commit, String file) {
+        HashMap<String, String> track = commit.trackedFiles;
+        if (!track.containsKey(file)) {
+            System.out.println("File does not exist in that commit.");
+            System.exit(0);
+        }
+        String fileHash = track.get(file);
+        File file_ = join(CWD, file);
+        File fileBlob = join(BLOB_DIR, fileHash);
+        writeContents(file_, readContents(fileBlob));
+    }
+
+    public static void checkout(String branch) {
+        Commit branchCommit = getBranchCommit(branch);
+        HashMap<String, String> track = branchCommit.trackedFiles;
+        List<String> untrack = getUntrackedFiles();
+        for (String file : untrack) {
+            if (track.containsKey(file)) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+        File branch_ = join(HEAD_DIR, branch);
+        if (!branch_.exists()) {
+            System.out.println("No such branch exists.");
+            System.exit(0);
+        } else if (branch.equals(readContentsAsString(HEAD))) {
+            System.out.println("No need to checkout the current branch.");
+            System.exit(0);
+        }
+        for (String file : track.keySet()) {
+            File file_ = join(CWD, file);
+            File blob = join(CWD, track.get(file));
+            writeContents(file_, readContents(blob));
+        }
+        Commit currentCommit = getCurrentCommit();
+        HashMap<String, String> currentTrack = currentCommit.trackedFiles;
+        for (String file : currentTrack.keySet()) {
+            if (!track.keySet().contains(file)) {
+                File file_ = join(CWD, file);
+                restrictedDelete(file_);
+            }
+        }
+        Staging stage = getCurrentStage();
+        stage.clear();
+        writeContents(HEAD, branch);
+    }
+
+
+
+
+    // help method
+    public static Commit getCommit(String id) {
+        if (id == null) {
+            return null;
+        }
+        File commit;
+        if (id.length() < 40) {
+            String shortId = getId(id);
+            commit = join(COMMIT_DIR, shortId);
+        } else {
+            commit = join(COMMIT_DIR, id);
+        }
+
+        if (!commit.exists()) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
+        return readObject(commit, Commit.class);
+    }
+
+    private static String getId(String id) {
+        int length = id.length();
+        List<String> commitList = plainFilenamesIn(COMMIT_DIR);
+        for (String commit : commitList) {
+            String subCommit = commit.substring(0, length);
+            if (subCommit.equals(id)) {
+                return commit;
+            }
+        }
+        return id;
+    }
+
+    public static void saveCommit (Commit commit) {
+        String name = sha1(serialize(commit));
+        File in = join(COMMIT_DIR, name);
+        writeObject(in, commit);
+    }
+
+    public static Commit getCurrentCommit() {
+        String branchName = readContentsAsString(HEAD);
+        File branchFile = join(HEAD_DIR, branchName);
+        String commitHash = readContentsAsString(branchFile);
+        return getCommit(commitHash);
+    }
+
+    public static Commit getBranchCommit(String branch) {
+        File branchFile = join(HEAD_DIR, branch);
+        String commitHash = readContentsAsString(branchFile);
+        return getCommit(commitHash);
+    }
+
+    public static Staging getCurrentStage() {
+        return readObject(STAGE_FILE, Staging.class);
+    }
+
+    public static List<String> getUntrackedFiles() {
+        Commit currentCommit = getCurrentCommit();
+        HashMap<String, String> track = currentCommit.trackedFiles;
+        Staging stage = getCurrentStage();
+        HashSet<String> rm = stage.removal;
+        HashMap<String, String> add = stage.addition;
+        List<String> rmList = new ArrayList<>(rm);
+        List<String> addList = new ArrayList<>(add.keySet());
+        List<String> untracked = new ArrayList<>();
+        List<String> cwd = plainFilenamesIn(CWD);
+        for (String file : cwd) {
+            File file_ = join(CWD, file);
+            String fileHash = sha1(readContents(file_));
+            if (!addList.contains(file) && !track.containsKey(file)) {
+                untracked.add(file);
+            } else if (rmList.contains(file)) {
+                untracked.add(file);
+            }
+        }
+        return untracked;
+    }
 
 }
