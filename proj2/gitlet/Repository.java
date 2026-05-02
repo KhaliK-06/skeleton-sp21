@@ -369,7 +369,6 @@ public class Repository {
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
-
         String curBranchName = readContentsAsString(HEAD);
         String curCommitHash = readContentsAsString(join(HEAD_DIR, curBranchName));
         String givenCommitHash = readContentsAsString(branchFile);
@@ -383,66 +382,53 @@ public class Repository {
             System.out.println("Given branch is an ancestor of the current branch.");
             System.exit(0);
         }
-
         Commit currentCommit = getCurrentCommit();
         Commit givenCommit = getBranchCommit(branch);
         Commit splitCommit = getCommit(splitCommitHash);
-
         HashMap<String, String> currentTrack = new HashMap<>(currentCommit.trackedFiles());
         HashMap<String, String> givenTrack = new HashMap<>(givenCommit.trackedFiles());
         HashMap<String, String> splitTrack = new HashMap<>(splitCommit.trackedFiles());
 
         mergeUntrackCheck(splitTrack, givenTrack);
-
         HashSet<String> allFiles = new HashSet<>();
         allFiles.addAll(currentTrack.keySet());
         allFiles.addAll(givenTrack.keySet());
         allFiles.addAll(splitTrack.keySet());
-
         boolean isConflicted = false;
-
         for (String file : allFiles) {
             String fileInSplit = splitTrack.get(file);
             String fileInCur = currentTrack.get(file);
             String fileInGiven = givenTrack.get(file);
-
-
             if (Objects.equals(fileInSplit, fileInCur)
                     && !Objects.equals(fileInSplit, fileInGiven)) {
                 if (fileInGiven != null) {
                     checkout(givenCommit, file);
                     stage.addition().put(file, fileInGiven);
                 } else {
-                    rm(file);
+                    stage.removal().add(file);
+                    restrictedDelete(join(CWD, file));
                 }
             } else if (!Objects.equals(fileInSplit, fileInCur)
                     && !Objects.equals(fileInSplit, fileInGiven)
                     && !Objects.equals(fileInCur, fileInGiven)) {
                 isConflicted = true;
-
                 String currContent = (fileInCur == null) ? ""
                         : readContentsAsString(join(BLOB_DIR, fileInCur));
                 String givenContent = (fileInGiven == null) ? ""
                         : readContentsAsString(join(BLOB_DIR, fileInGiven));
-
                 String conflictContent = "<<<<<<< HEAD\n" + currContent
                         + "=======\n" + givenContent + ">>>>>>>\n";
-
                 File targetFile = join(CWD, file);
                 writeContents(targetFile, conflictContent);
-
                 String newHash = sha1(conflictContent);
                 File blobFile = join(BLOB_DIR, newHash);
                 writeContents(blobFile, conflictContent.getBytes());
                 stage.addition().put(file, newHash);
             }
         }
-
         writeObject(STAGE_FILE, stage);
-
         String msg = "Merged " + branch + " into " + curBranchName + ".";
         commitMerge(msg, givenCommitHash);
-
         if (isConflicted) {
             System.out.println("Encountered a merge conflict.");
         }

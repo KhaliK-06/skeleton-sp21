@@ -75,8 +75,8 @@ public class RepositoryHelper {
             String fileHash = sha1(readContents(fFile));
             if (addList.contains(file) && !fileHash.equals(add.get(file))) {
                 modified.add(file + " (modified)");
-            } else if (track.containsKey(file) && !addList.contains(file) &&
-                    !fileHash.equals(track.get(file))) {
+            } else if (track.containsKey(file) && !addList.contains(file)
+                    && !fileHash.equals(track.get(file))) {
                 modified.add(file + " (modified)");
             }
         }
@@ -119,8 +119,8 @@ public class RepositoryHelper {
         List<String> untrack = getUntrackedFiles();
         for (String file : untrack) {
             if (track.containsKey(file)) {
-                System.out.println("There is an untracked file in the way; " +
-                        "delete it, or add and commit it first.");
+                System.out.println("There is an untracked file in the way; "
+                        + "delete it, or add and commit it first.");
                 System.exit(0);
             }
         }
@@ -168,7 +168,7 @@ public class RepositoryHelper {
                 givenQueue.add(currCommit.prev());
             }
             if (currCommit.mergePrev() != null) {
-            givenQueue.add(currCommit.mergePrev());
+                givenQueue.add(currCommit.mergePrev());
             }
         }
         return null;
