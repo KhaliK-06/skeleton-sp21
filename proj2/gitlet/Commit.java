@@ -37,7 +37,8 @@ public class Commit implements Serializable {
         trackedFiles = files;
     }
 
-    public Commit(Date time, String message, String prev, String mergePrev, HashMap<String, String> files) {
+    public Commit(Date time, String message, String prev,
+                  String mergePrev, HashMap<String, String> files) {
         this.time = time;
         this.message = message;
         this.prev = prev;

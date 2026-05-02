@@ -149,10 +149,10 @@ public class RepositoryHelper {
                 queue.add(currCommit.prev());
                 ancestors.add(currCommit.prev());
             }
-        if (currCommit.mergePrev() != null && !ancestors.contains(currCommit.mergePrev())) {
-            queue.add(currCommit.mergePrev());
-            ancestors.add(currCommit.mergePrev());
-        }
+            if (currCommit.mergePrev() != null && !ancestors.contains(currCommit.mergePrev())) {
+                queue.add(currCommit.mergePrev());
+                ancestors.add(currCommit.mergePrev());
+            }
         }
         // search in the given commit path
         Queue<String> givenQueue = new LinkedList<>();
@@ -167,9 +167,9 @@ public class RepositoryHelper {
             if (currCommit.prev() != null) {
                 givenQueue.add(currCommit.prev());
             }
-        if (currCommit.mergePrev() != null) {
+            if (currCommit.mergePrev() != null) {
             givenQueue.add(currCommit.mergePrev());
-        }
+            }
         }
         return null;
     }
@@ -179,13 +179,13 @@ public class RepositoryHelper {
         List<String> untrack = getUntrackedFiles();
         for (String file : untrack) {
             if (givenTrack.containsKey(file) && !splitTrack.containsKey(file)) {
-                System.out.println("There is an untracked file in the way; " +
-                        "delete it, or add and commit it first.");
+                System.out.println("There is an untracked file in the way; "
+                        + "delete it, or add and commit it first.");
                 System.exit(0);
             } else if (givenTrack.containsKey(file) && splitTrack.containsKey(file)) {
                 if (!givenTrack.get(file).equals(splitTrack.get(file))) {
-                    System.out.println("There is an untracked file in the way; " +
-                            "delete it, or add and commit it first.");
+                    System.out.println("There is an untracked file in the way; "
+                            + "delete it, or add and commit it first.");
                     System.exit(0);
                 }
             }

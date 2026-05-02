@@ -167,7 +167,7 @@ public class Repository {
             if (commit.isMerge()) {
                 String first = commit.prev().substring(0, 7);
                 String second = commit.mergePrev().substring(0, 7);
-                System.out.println("Merge: " + first + second);
+                System.out.println("Merge: " + first + " " + second);
             }
             System.out.println("Date: " + sdf.format(commit.time()));
             System.out.println(commit.message());
@@ -193,7 +193,7 @@ public class Repository {
             if (c.isMerge()) {
                 String first = c.prev().substring(0, 7);
                 String second = c.mergePrev().substring(0, 7);
-                System.out.println("Merge: " + first + second);
+                System.out.println("Merge: " + first + " " + second);
             }
             System.out.println("Date: " + sdf.format(c.time()));
             System.out.println(c.message());
@@ -331,7 +331,7 @@ public class Repository {
             System.out.println("Cannot remove the current branch.");
             System.exit(0);
         }
-        restrictedDelete(branchFile);
+        branchFile.delete();
     }
 
     public static void reset(String id) {
@@ -407,28 +407,26 @@ public class Repository {
             String fileInGiven = givenTrack.get(file);
 
 
-            if (Objects.equals(fileInSplit, fileInCur) &&
-                    !Objects.equals(fileInSplit, fileInGiven)) {
+            if (Objects.equals(fileInSplit, fileInCur)
+                    && !Objects.equals(fileInSplit, fileInGiven)) {
                 if (fileInGiven != null) {
                     checkout(givenCommit, file);
                     stage.addition().put(file, fileInGiven);
                 } else {
                     rm(file);
                 }
-            }
-            // conflict
-            else if (!Objects.equals(fileInSplit, fileInCur) &&
-                    !Objects.equals(fileInSplit, fileInGiven)
+            } else if (!Objects.equals(fileInSplit, fileInCur)
+                    && !Objects.equals(fileInSplit, fileInGiven)
                     && !Objects.equals(fileInCur, fileInGiven)) {
                 isConflicted = true;
 
-                String currContent = (fileInCur == null) ? "" :
-                        readContentsAsString(join(BLOB_DIR, fileInCur));
-                String givenContent = (fileInGiven == null) ? "" :
-                        readContentsAsString(join(BLOB_DIR, fileInGiven));
+                String currContent = (fileInCur == null) ? ""
+                        : readContentsAsString(join(BLOB_DIR, fileInCur));
+                String givenContent = (fileInGiven == null) ? ""
+                        : readContentsAsString(join(BLOB_DIR, fileInGiven));
 
-                String conflictContent = "<<<<<<< HEAD\n" + currContent +
-                        "=======\n" + givenContent + ">>>>>>>\n";
+                String conflictContent = "<<<<<<< HEAD\n" + currContent
+                        + "=======\n" + givenContent + ">>>>>>>\n";
 
                 File targetFile = join(CWD, file);
                 writeContents(targetFile, conflictContent);
