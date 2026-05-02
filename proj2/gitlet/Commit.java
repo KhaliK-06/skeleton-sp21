@@ -21,6 +21,7 @@ public class Commit implements Serializable {
     private String message;
     private String prev;
     private HashMap<String, String> trackedFiles;
+    private String mergePrev = null;
 
     public Commit() {
         time = new Date(0);
@@ -36,6 +37,14 @@ public class Commit implements Serializable {
         trackedFiles = files;
     }
 
+    public Commit(Date time, String message, String prev, String mergePrev, HashMap<String, String> files) {
+        this.time = time;
+        this.message = message;
+        this.prev = prev;
+        this.mergePrev = mergePrev;
+        trackedFiles = files;
+    }
+
     public Date time() {
         return time;
     }
@@ -48,8 +57,15 @@ public class Commit implements Serializable {
         return prev;
     }
 
+    public String mergePrev() {
+        return mergePrev;
+    }
+
     public HashMap<String, String> trackedFiles() {
         return trackedFiles;
     }
 
+    public boolean isMerge() {
+        return mergePrev != null;
+    }
 }

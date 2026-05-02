@@ -32,4 +32,8 @@ public class Staging implements Serializable {
         return  removal;
     }
 
+    public boolean isEmpty() {
+        return addition.isEmpty() && removal.isEmpty();
+    }
+
 }

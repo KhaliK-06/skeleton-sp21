@@ -27,7 +27,6 @@ import static gitlet.RepositoryHelper.*;
  *      get the commit with id
  *   saveCommit()
  *      save the commit
- *  @author TODO
  *
  */
 public class Repository {
@@ -48,7 +47,7 @@ public class Repository {
     public static final File HEAD_DIR = join(CWD, ".gitlet", "refs", "heads");
     public static final File STAGING_DIR = join(CWD, ".gitlet", "staging");
     public static final File STAGE_FILE = join(STAGING_DIR, "staging_area");
-    public static File HEAD = join(GITLET_DIR, "HEAD");
+    static File HEAD = join(GITLET_DIR, "HEAD");
 
 
     public static void setupRepo()  {
@@ -165,7 +164,11 @@ public class Repository {
         while (commit != null) {
             System.out.println("===");
             System.out.println("commit " + hash);
-            // TODO : merge situation
+            if (commit.isMerge()) {
+                String first = commit.prev().substring(0, 7);
+                String second = commit.mergePrev().substring(0, 7);
+                System.out.println("Merge: " + first + second);
+            }
             System.out.println("Date: " + sdf.format(commit.time()));
             System.out.println(commit.message());
             System.out.println();
@@ -187,7 +190,11 @@ public class Repository {
             String hash = commit;
             System.out.println("===");
             System.out.println("commit " + hash);
-            // TODO : merge situation
+            if (c.isMerge()) {
+                String first = c.prev().substring(0, 7);
+                String second = c.mergePrev().substring(0, 7);
+                System.out.println("Merge: " + first + second);
+            }
             System.out.println("Date: " + sdf.format(c.time()));
             System.out.println(c.message());
             System.out.println();
@@ -202,7 +209,7 @@ public class Repository {
             Commit c = getCommit(commit);
             if (c.message().equals(message)) {
                 System.out.println(commit);
-                    isFind = true;
+                isFind = true;
             }
         }
         if (!isFind) {
@@ -286,7 +293,7 @@ public class Repository {
         untrackCheck(track);
         for (String file : track.keySet()) {
             File fFile = join(CWD, file);
-            File blob = join(CWD, track.get(file));
+            File blob = join(BLOB_DIR, track.get(file));
             writeContents(fFile, readContents(blob));
         }
         Commit currentCommit = getCurrentCommit();
@@ -348,5 +355,99 @@ public class Repository {
         stage.clear();
     }
 
+    public static void merge(String branch) {
+        Staging stage = getCurrentStage();
+        File branchFile = join(HEAD_DIR, branch);
+
+        if (!stage.isEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        } else if (!branchFile.exists()) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        } else if (branch.equals(readContentsAsString(HEAD))) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+
+        String curBranchName = readContentsAsString(HEAD);
+        String curCommitHash = readContentsAsString(join(HEAD_DIR, curBranchName));
+        String givenCommitHash = readContentsAsString(branchFile);
+        String splitCommitHash = findSplit(branch);
+
+        if (curCommitHash.equals(splitCommitHash)) {
+            checkout(branch);
+            System.out.println("Current branch fast-forwarded.");
+            System.exit(0);
+        } else if (givenCommitHash.equals(splitCommitHash)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+
+        Commit currentCommit = getCurrentCommit();
+        Commit givenCommit = getBranchCommit(branch);
+        Commit splitCommit = getCommit(splitCommitHash);
+
+        HashMap<String, String> currentTrack = new HashMap<>(currentCommit.trackedFiles());
+        HashMap<String, String> givenTrack = new HashMap<>(givenCommit.trackedFiles());
+        HashMap<String, String> splitTrack = new HashMap<>(splitCommit.trackedFiles());
+
+        mergeUntrackCheck(splitTrack, givenTrack);
+
+        HashSet<String> allFiles = new HashSet<>();
+        allFiles.addAll(currentTrack.keySet());
+        allFiles.addAll(givenTrack.keySet());
+        allFiles.addAll(splitTrack.keySet());
+
+        boolean isConflicted = false;
+
+        for (String file : allFiles) {
+            String fileInSplit = splitTrack.get(file);
+            String fileInCur = currentTrack.get(file);
+            String fileInGiven = givenTrack.get(file);
+
+
+            if (Objects.equals(fileInSplit, fileInCur) &&
+                    !Objects.equals(fileInSplit, fileInGiven)) {
+                if (fileInGiven != null) {
+                    checkout(givenCommit, file);
+                    stage.addition().put(file, fileInGiven);
+                } else {
+                    rm(file);
+                }
+            }
+            // conflict
+            else if (!Objects.equals(fileInSplit, fileInCur) &&
+                    !Objects.equals(fileInSplit, fileInGiven)
+                    && !Objects.equals(fileInCur, fileInGiven)) {
+                isConflicted = true;
+
+                String currContent = (fileInCur == null) ? "" :
+                        readContentsAsString(join(BLOB_DIR, fileInCur));
+                String givenContent = (fileInGiven == null) ? "" :
+                        readContentsAsString(join(BLOB_DIR, fileInGiven));
+
+                String conflictContent = "<<<<<<< HEAD\n" + currContent +
+                        "=======\n" + givenContent + ">>>>>>>\n";
+
+                File targetFile = join(CWD, file);
+                writeContents(targetFile, conflictContent);
+
+                String newHash = sha1(conflictContent);
+                File blobFile = join(BLOB_DIR, newHash);
+                writeContents(blobFile, conflictContent.getBytes());
+                stage.addition().put(file, newHash);
+            }
+        }
+
+        writeObject(STAGE_FILE, stage);
+
+        String msg = "Merged " + branch + " into " + curBranchName + ".";
+        commitMerge(msg, givenCommitHash);
+
+        if (isConflicted) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
 
 }
