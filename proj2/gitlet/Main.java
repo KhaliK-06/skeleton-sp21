@@ -1,8 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
-
 import static gitlet.Utils.*;
 
 // Driver class for Gitlet, a subset of the Git version-control system.
@@ -28,7 +26,7 @@ public class Main {
                 }
                 Repository.setupRepo();
                 Commit init = new Commit();
-                Repository.saveCommit(init);
+                RepositoryHelper.saveCommit(init);
                 File master = join(Repository.HEAD_DIR, "master");
                 writeContents(master, sha1(serialize(init)));
                 break;
@@ -65,7 +63,7 @@ public class Main {
             case "global-log":
                 initialCheck();
                 validateNumArgs(args, 1);
-                Repository.g_log();
+                Repository.gLog();
                 break;
             case "find":
                 initialCheck();
@@ -80,6 +78,21 @@ public class Main {
             case "checkout":
                 initialCheck();
                 checkout(args);
+                break;
+            case "branch":
+                initialCheck();
+                validateNumArgs(args, 2);
+                Repository.branch(args[1]);
+                break;
+            case "rm-branch":
+                initialCheck();
+                validateNumArgs(args, 2);
+                Repository.rmBranch(args[1]);
+                break;
+            case "reset":
+                initialCheck();
+                validateNumArgs(args, 2);
+                Repository.reset(args[1]);
                 break;
             default:
                 System.out.println("No command with that name exists.");
@@ -108,7 +121,7 @@ public class Main {
                 System.exit(0);
             }
             String fileName = args[2];
-            Repository.checkout(Repository.getCurrentCommit(), fileName);
+            Repository.checkout(RepositoryHelper.getCurrentCommit(), fileName);
         } else if (args.length == 4) {
             if (!args[2].equals("--")) {
                 System.out.println("Incorrect operands.");
@@ -116,7 +129,7 @@ public class Main {
             }
             String commitId = args[1];
             String fileName = args[3];
-            Repository.checkout(Repository.getCommit(commitId), fileName);
+            Repository.checkout(RepositoryHelper.getCommit(commitId), fileName);
         } else if (args.length == 2) {
             Repository.checkout(args[1]);
         } else {

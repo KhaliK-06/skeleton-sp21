@@ -9,10 +9,10 @@ import static gitlet.Utils.*;
 public class Staging implements Serializable {
 
     // <filename, sha1_value>
-    public HashMap<String, String> addition = new HashMap<>();
+    private HashMap<String, String> addition = new HashMap<>();
 
     // <filename>
-    public HashSet<String> removal = new HashSet<>();
+    private HashSet<String> removal = new HashSet<>();
 
     public void clear() {
         addition.clear();
@@ -22,6 +22,14 @@ public class Staging implements Serializable {
 
     public void update() {
         writeObject(Repository.STAGE_FILE, this);
+    }
+
+    public HashMap<String, String> addition() {
+        return  addition;
+    }
+
+    public HashSet<String> removal() {
+        return  removal;
     }
 
 }

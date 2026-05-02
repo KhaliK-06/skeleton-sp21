@@ -1,11 +1,9 @@
 package gitlet;
 
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
-import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
  *  Head pointer
@@ -19,10 +17,10 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    public Date time;
-    public String message;
-    public String prev;
-    public HashMap<String, String> trackedFiles;
+    private Date time;
+    private String message;
+    private String prev;
+    private HashMap<String, String> trackedFiles;
 
     public Commit() {
         time = new Date(0);
@@ -38,5 +36,20 @@ public class Commit implements Serializable {
         trackedFiles = files;
     }
 
+    public Date time() {
+        return time;
+    }
+
+    public String message() {
+        return message;
+    }
+
+    public String prev() {
+        return prev;
+    }
+
+    public HashMap<String, String> trackedFiles() {
+        return trackedFiles;
+    }
 
 }
